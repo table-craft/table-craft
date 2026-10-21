@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Playground · Tablecraft</title>
+  <meta name="description" content="Edit a Tablecraft game module in the browser and play it on a live 3D table, with the referee and the balance lab one click away." />
+  <meta name="theme-color" content="#0b0d12" />
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+</head>
+<body class="pg-page">
+  <header class="nav">
+    <a class="brand" href="./"><img src="./logo.svg" alt="" width="30" height="30" /> Tablecraft</a>
+    <nav>
+      <a href="./playground.html" class="on" aria-current="page">Playground</a>
+      <a href="./examples.html">Examples</a>
+      <a href="./docs/index.html">Docs</a>
+      <a class="gh" href="https://github.com/table-craft/table-craft"><svg viewBox="0 0 16 16" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+    </nav>
+  </header>
+  <main class="pg" id="pg">
+    <div class="pg-toolbar" role="toolbar" aria-label="Playground">
+      <label class="pg-field"><span>Game</span><select id="pg-example" aria-label="Example game"></select></label>
+      <label class="pg-field"><span>Players</span><select id="pg-players" aria-label="Number of players"></select></label>
+      <button class="pg-btn primary" id="pg-run" type="button" title="Run (Ctrl/⌘ + Enter)"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z" fill="currentColor"/></svg><span>Run</span><kbd class="pg-kbd" id="pg-kbd">Ctrl ↵</kbd></button>
+      <button class="pg-btn" id="pg-validate" type="button" title="Run the referee: bots play 50 games and report rule bugs"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 12.5l2.7 2.7L16 9.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Validate</span></button>
+      <span class="pg-status" id="pg-status" aria-live="polite"></span>
+      <span class="pg-spacer"></span>
+      <button class="pg-btn" id="pg-share" type="button" title="Copy a link that contains your code"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Share</span></button>
+      <button class="pg-btn" id="pg-replay" type="button" title="Copy a replay link of the current game" disabled><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Share replay</span></button>
+      <button class="pg-btn" id="pg-download" type="button" title="Download game.js"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Download</span></button>
+    </div>
+    <div class="pg-split" id="pg-split">
+      <section class="pg-code" aria-label="Game module source">
+        <div class="pg-pane-head">
+          <span class="pg-file"><i></i>game.js</span>
+          <span class="pg-draft" id="pg-draft" hidden>Edited · <button id="pg-reset" type="button">Reset to example</button></span>
+          <span class="pg-ed-kind" id="pg-ed-kind"></span>
+        </div>
+        <div class="pg-editor" id="pg-editor"><div class="pg-loading">Loading the editor…</div></div>
+        <div class="pg-errors" id="pg-errors" hidden></div>
+      </section>
+      <div class="pg-gutter" id="pg-gutter" role="separator" aria-orientation="vertical" aria-label="Resize panes" tabindex="0"></div>
+      <section class="pg-right" aria-label="Output">
+        <div class="pg-tabs" role="tablist">
+          <button role="tab" type="button" class="on" data-tab="table" aria-selected="true">Table</button>
+          <button role="tab" type="button" data-tab="referee" aria-selected="false">Referee <i class="pg-tab-dot" id="ref-dot"></i></button>
+          <button role="tab" type="button" data-tab="balance" aria-selected="false">Balance</button>
+        </div>
+        <div class="pg-panes">
+          <div class="pg-pane on" data-pane="table"><div class="pg-table" id="pg-table"></div></div>
+          <div class="pg-pane lab" data-pane="referee">
+            <div class="lab-head">
+              <div><h3>Referee</h3><p>Bots play complete games and report module errors, moves <code>actions()</code> offered but <code>move()</code> rejected, stuck states, invariant violations and broken scenes.</p></div>
+              <div class="lab-controls">
+                <label class="pg-field"><span>Games</span><select id="ref-games"><option>20</option><option selected>50</option><option>200</option></select></label>
+                <button class="pg-btn primary" id="ref-run" type="button">Validate</button>
+              </div>
+            </div>
+            <div class="lab-out" id="ref-out"><p class="lab-empty">Run the referee to check the rules in the editor.</p></div>
+          </div>
+          <div class="pg-pane lab" data-pane="balance">
+            <div class="lab-head">
+              <div><h3>Balance lab</h3><p>Many complete bot games, measured: seat and first-player advantage, game length, forced decisions, lead changes and comebacks.</p></div>
+              <div class="lab-controls">
+                <label class="pg-field"><span>Games</span><select id="bal-games"><option>50</option><option selected>100</option><option>300</option><option>1000</option></select></label>
+                <label class="pg-field"><span>Players</span><select id="bal-players"></select></label>
+                <label class="pg-field"><span>Bots</span><select id="bal-bots">
+                  <option value="module">game bot</option>
+                  <option value="module,random">game bot + random</option>
+                  <option value="greedy,random">greedy + random</option>
+                  <option value="module,greedy,random">all profiles</option>
+                </select></label>
+                <button class="pg-btn primary" id="bal-run" type="button">Analyze</button>
+              </div>
+            </div>
+            <div class="lab-out" id="bal-out"><p class="lab-empty">Analyze the game in the editor. Everything runs in a background worker in your browser.</p></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module" src="./src/playground.js"></script>
+</body>
+</html>

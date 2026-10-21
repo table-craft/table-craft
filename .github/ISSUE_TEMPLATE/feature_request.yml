@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest a mechanic, scene object, tool or API.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to build?
+      description: The game or situation. Which published games use this mechanic?
+    validations: { required: true }
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: How it could look in a game module (moves, view, scene objects, T helpers).
+      render: js
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do today
+      description: Workarounds or alternatives you considered.

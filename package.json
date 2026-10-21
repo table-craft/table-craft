@@ -1,0 +1,181 @@
+{
+  "name": "tablecraft",
+  "version": "0.1.0",
+  "description": "Server-authoritative 3D tabletop engine: write the rules of any board or card game as one JavaScript module and get a physics-based, multiplayer, bot-ready table.",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "board-game",
+    "card-game",
+    "tabletop",
+    "three.js",
+    "multiplayer",
+    "game-engine",
+    "prototyping",
+    "bots",
+    "socket.io",
+    "mcp",
+    "model-context-protocol",
+    "ai"
+  ],
+  "homepage": "https://github.com/table-craft/table-craft#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/table-craft/table-craft.git"
+  },
+  "bugs": "https://github.com/table-craft/table-craft/issues",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "sideEffects": [
+    "*.css",
+    "./src/engine/fonts.js"
+  ],
+  "types": "./types/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "types",
+    "!types/test",
+    "!types/tsconfig.test.json",
+    "docs",
+    "examples",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "!examples/*/thumb.*"
+  ],
+  "bin": {
+    "tablecraft": "./src/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "source": "./src/index.js",
+      "import": "./dist/index.js",
+      "default": "./src/index.js"
+    },
+    "./react": {
+      "types": "./types/react.d.ts",
+      "source": "./src/react/index.js",
+      "import": "./dist/react.js",
+      "default": "./dist/react.js"
+    },
+    "./engine": {
+      "types": "./types/engine.d.ts",
+      "source": "./src/engine/index.js",
+      "import": "./dist/engine.js",
+      "default": "./dist/engine.js"
+    },
+    "./embed": {
+      "types": "./types/embed.d.ts",
+      "source": "./src/embed.js",
+      "import": "./dist/embed.js",
+      "default": "./dist/embed.js"
+    },
+    "./server": {
+      "types": "./types/server.d.ts",
+      "default": "./src/server/index.js"
+    },
+    "./style.css": {
+      "source": "./src/react/tablecraft.css",
+      "default": "./dist/tablecraft.css"
+    },
+    "./package.json": "./package.json",
+    "./mcp": {
+      "types": "./types/mcp.d.ts",
+      "default": "./src/mcp/index.js"
+    },
+    "./game": {
+      "types": "./types/game.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "node --test \"test/*.test.js\"",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/**\" \"test/*.test.js\"",
+    "pretypecheck": "node types/test/link.mjs",
+    "typecheck": "tsc -p types/tsconfig.test.json",
+    "lint": "eslint .",
+    "site:dev": "vite --config site/vite.config.js",
+    "site:build": "vite build --config site/vite.config.js",
+    "example:server": "node examples/server/server.js",
+    "mcp": "node src/cli.js mcp",
+    "prepublishOnly": "npm run lint && npm test && npm run build",
+    "examples:check": "node scripts/check-examples.js"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.1.1",
+    "@fontsource/playfair-display": "^5.1.1"
+  },
+  "peerDependencies": {
+    "cannon-es": ">=0.20",
+    "react": ">=18",
+    "react-dom": ">=18",
+    "three": ">=0.160 <1",
+    "@types/react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "three": {
+      "optional": true
+    },
+    "cannon-es": {
+      "optional": true
+    },
+    "@types/react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@types/react": "^19.3.0",
+    "@vitejs/plugin-react": "^4.5.0",
+    "cannon-es": "^0.20.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^16.5.0",
+    "marked": "^15.0.12",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "three": "^0.160.0",
+    "typescript": "^5.9.3",
+    "vite": "^6.3.0",
+    "zod": "^4.6.7"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "typesVersions": {
+    "*": {
+      "react": [
+        "./types/react.d.ts"
+      ],
+      "engine": [
+        "./types/engine.d.ts"
+      ],
+      "embed": [
+        "./types/embed.d.ts"
+      ],
+      "server": [
+        "./types/server.d.ts"
+      ],
+      "mcp": [
+        "./types/mcp.d.ts"
+      ],
+      "game": [
+        "./types/game.d.ts"
+      ]
+    }
+  }
+}

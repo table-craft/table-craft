@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and show-and-tell
+    url: https://github.com/table-craft/table-craft/discussions
+    about: Ask how to model a game, share what you built, discuss ideas.
+  - name: Security vulnerability
+    url: https://github.com/table-craft/table-craft/security/advisories/new
+    about: Please report security issues privately.

@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tablecraft — the 3D tabletop engine for any board or card game</title>
+  <meta name="description" content="Write the rules of any board or card game as one JavaScript module. Tablecraft gives you a physics-based 3D table, multiplayer rooms, bots and an automated referee." />
+  <meta property="og:title" content="Tablecraft — write the rules, get the table" />
+  <meta property="og:description" content="Server-authoritative 3D tabletop engine: physics dice, hidden information, bots, a referee and a table every player can follow." />
+  <meta property="og:image" content="./og.png" />
+  <meta name="theme-color" content="#0b0d12" />
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="./"><img src="./logo.svg" alt="" width="30" height="30" /> Tablecraft</a>
+    <nav>
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#code">Integrate</a>
+      <a href="./playground.html">Playground</a>
+      <a href="./examples.html">Examples</a>
+      <a href="./docs/index.html">Docs</a>
+      <a class="gh" href="https://github.com/table-craft/table-craft"><svg viewBox="0 0 16 16" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ============ hero -->
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">Open-source · MIT · v0.1</span>
+        <h1>Write the rules.<br /><em>Get the table.</em></h1>
+        <p class="lead">Tablecraft turns one JavaScript module into a real 3D tabletop: physics dice, cards that fly and flip, hidden hands, multiplayer rooms, bots and an automated referee. Any board or card game — no game-engine experience needed.</p>
+        <div class="cta">
+          <a class="btn primary" href="#demo">Play the live demo</a>
+          <a class="btn" href="./playground.html">Open the playground</a>
+          <a class="btn" href="./docs/getting-started.html">Get started</a>
+        </div>
+        <div class="install"><code>npm install tablecraft</code><button class="copy" data-copy="npm install tablecraft" aria-label="Copy install command">Copy</button></div>
+      </div>
+      <div class="demo-frame" id="demo">
+        <div class="demo-bar"><i></i><i></i><i></i><span>Treasure Road — you vs. a bot · runs entirely in your browser</span><a href="./play.html" title="Open full screen">⤢</a></div>
+        <div class="demo-stage" id="demo-stage">
+          <button class="demo-start" id="demo-start"><span>▶</span> Start the table</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="strip">
+      <div><b>1 file</b><span>rules, setup, view</span></div>
+      <div><b>0 servers</b><span>to prototype locally</span></div>
+      <div><b>Real physics</b><span>dice land on the server's roll</span></div>
+      <div><b>Bots + referee</b><span>thousands of games in seconds</span></div>
+    </section>
+
+    <!-- ============ how -->
+    <section class="section" id="how">
+      <h2>How it works</h2>
+      <p class="sub">You describe the game. Tablecraft runs it, renders it and keeps everyone honest.</p>
+      <div class="steps">
+        <article>
+          <span class="step">1</span>
+          <h3>Write the rules</h3>
+          <p>A game is a plain module: <code>setup()</code> deals, <code>moves</code> validate and change state, <code>endIf()</code> decides the winner. State is JSON; randomness is seeded and replayable.</p>
+<pre><code class="js">moves: {
+  roll(s, ctx) {
+    if (cur(s).id !== ctx.playerId) return { error: 'Not your turn' };
+    const r = ctx.roll(6, { id: 'die', by: ctx.playerId });
+    s.pos[ctx.playerId] += r.face;
+    return s;
+  },
+}</code></pre>
+        </article>
+        <article>
+          <span class="step">2</span>
+          <h3>Describe the table</h3>
+          <p><code>view()</code> returns what <em>this</em> player may see: zones, cards, dice, tokens, a HUD. Opponents' cards simply have no face. Same ids move between zones — and animate.</p>
+<pre><code class="js">view(s, { playerId }) {
+  return { type: 'tabletop', scene: {
+    zones: [{ id: 'market', layout: 'row', label: 'Market' }],
+    objects: s.market.map((id) => ({
+      id, kind: 'card', zone: 'market', enterFrom: 'deck',
+      face: { title: CARDS[id].name, text: CARDS[id].text },
+      click: { name: 'buy', args: { id } },
+    })),
+  }, hud: { log: s.log } };
+}</code></pre>
+        </article>
+        <article>
+          <span class="step">3</span>
+          <h3>Play anywhere</h3>
+          <p>Run it in the browser against bots, or put it on a room server for real multiplayer. The client is identical; only the source of truth moves.</p>
+<pre><code class="js">// local, no server
+const match = createLocalMatch({ source, players: ['You', 'bot', 'bot'] });
+// or online
+const match = connectRoom({ io, url, room: 'AB12CD', name: 'Ada' });
+
+&lt;TablecraftGame client={match} /&gt;</code></pre>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ follow -->
+    <section class="section follow">
+      <div class="follow-copy">
+        <span class="eyebrow">Built for watching, not just playing</span>
+        <h2>Nobody loses track of the game.</h2>
+        <p>Bots move fast and opponents play cards on the far side of the table. Tablecraft detects every card that is revealed, played, given or discarded and puts it on stage — large, readable, with who did it and the line from your game log.</p>
+        <ul class="ticks">
+          <li><b>Spotlight</b> — one move at a time, pausable, never piling up.</li>
+          <li><b>Game log</b> — rounds, coloured player names, card thumbnails, dice results.</li>
+          <li><b>Readable pace</b> — bots wait longer after dice, banners and reveals.</li>
+          <li><b>Turn cues</b> — "Your turn" with sound, camera and a glowing decision dock.</li>
+        </ul>
+      </div>
+      <figure class="follow-shot"><img src="./spotlight.png" alt="Spotlight showing a card another player just played, with the matching game-log line"/></figure>
+    </section>
+
+    <!-- ============ features -->
+    <section class="section" id="features">
+      <h2>Everything a tabletop needs</h2>
+      <div class="grid">
+        <article><i>⚖️</i><h3>Server-authoritative</h3><p>Clients send intents; the rules run in a sandbox with per-call timeouts. No cheating by editing the page.</p></article>
+        <article><i>🎲</i><h3>Physics that agrees</h3><p>Dice are thrown with cannon-es and land on the face the server rolled. Tokens toss and stack; cards arc, tilt and flip.</p></article>
+        <article><i>🙈</i><h3>Hidden information</h3><p><code>view()</code> is per player. Hands, decks and secret roles never reach the wrong browser.</p></article>
+        <article><i>🤖</i><h3>Bots &amp; referee</h3><p>Export <code>actions()</code> and you get bots for free — plus a referee that plays hundreds of games and reports rule bugs.</p></article>
+        <article><i>🃏</i><h3>Cards from data</h3><p>Title, text, chips, corner badges and art. No art yet? A clean illustration is drawn for you until it exists.</p></article>
+        <article><i>🌍</i><h3>Rooms you host</h3><p><code>createRoomServer()</code> on socket.io: lobby, seats, bots, sand timers, pacing. Your server, your data.</p></article>
+        <article><i>🎧</i><h3>Sound &amp; atmosphere</h3><p>Procedural card, dice and coin sounds with room reverb, ambience and six lighting presets.</p></article>
+        <article><i>⚛️</i><h3>React or not</h3><p><code>&lt;TablecraftGame&gt;</code>, <code>&lt;Tabletop&gt;</code> or <code>mountGame(el)</code> for any page. Themeable with CSS variables; English and Turkish built in.</p></article>
+        <article><i>✨</i><h3>AI-ready</h3><p><code>npx tablecraft mcp</code> lets Claude write a game, run the referee, audit every player's view and step through matches with you.</p></article>
+      </div>
+    </section>
+
+    <!-- ============ code -->
+    <section class="section" id="code">
+      <h2>Drop it into your app</h2>
+      <div class="tabs" role="tablist">
+        <button role="tab" class="on" data-tab="react">React</button>
+        <button role="tab" data-tab="vanilla">Any page</button>
+        <button role="tab" data-tab="server">Multiplayer server</button>
+        <button role="tab" data-tab="referee">Referee</button>
+      </div>
+      <div class="tabpanes">
+<pre data-pane="react" class="on"><code class="js">import { createLocalMatch } from 'tablecraft';
+import { TablecraftGame } from 'tablecraft/react';
+import 'tablecraft/style.css';
+import source from './treasure-road.js?raw';
+
+const match = createLocalMatch({ source, players: ['You', 'bot', 'bot'] });
+
+export default function App() {
+  return &lt;TablecraftGame client={match} style={{ height: '100vh' }} /&gt;;
+}</code></pre>
+<pre data-pane="vanilla"><code class="js">import { mountGame, createLocalMatch } from 'tablecraft/embed';
+import 'tablecraft/style.css';
+
+const source = await (await fetch('/games/treasure-road.js')).text();
+mountGame(document.getElementById('table'), {
+  client: createLocalMatch({ source, players: ['You', 'bot'] }),
+  locale: 'en',
+});</code></pre>
+<pre data-pane="server"><code class="js">import fs from 'node:fs';
+import { createServer } from 'node:http';
+import { Server } from 'socket.io';
+import { createRoomServer } from 'tablecraft/server';
+
+const http = createServer();
+const rooms = createRoomServer(new Server(http).of('/tablecraft'));
+const code = rooms.createRoom({ source: fs.readFileSync('game.js', 'utf8') });
+
+http.listen(3000, () =&gt; console.log('room', code));
+// client: connectRoom({ io, url: 'http://localhost:3000', room: code, name })</code></pre>
+<pre data-pane="referee"><code class="js">import { simulate, summarize } from 'tablecraft/server';
+
+const report = simulate(source, { games: 200 });
+console.log(summarize(report));
+// 200 games · 200 finished · 0 stuck · 0 hit the move cap · avg 18 moves
+// …or every move actions() offered but move() rejected, stuck states,
+//   invariant violations and broken scenes — with the game, move and args.</code></pre>
+      </div>
+    </section>
+
+    <!-- ============ architecture -->
+    <section class="section arch">
+      <h2>One source of truth</h2>
+      <p class="sub">The rules run in exactly one place. Every player gets their own view; animations come from diffs, never from trust.</p>
+      <svg viewBox="0 0 960 300" class="diagram" role="img" aria-label="Game module runs on the host; each player receives their own view and sends intents back">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#e2b96f"/></marker>
+        </defs>
+        <g class="box"><rect x="20" y="95" width="210" height="110" rx="16"/><text x="125" y="140">game.js</text><text x="125" y="166" class="s">setup · moves · view</text><text x="125" y="186" class="s">endIf · actions · bot</text></g>
+        <g class="box gold"><rect x="300" y="70" width="250" height="160" rx="18"/><text x="425" y="112">Host</text><text x="425" y="140" class="s">Match · sandbox · seeded RNG</text><text x="425" y="162" class="s">bots · pacing · sand timers</text><text x="425" y="196" class="s dim">room server or your browser</text></g>
+        <g class="box"><rect x="640" y="20" width="300" height="70" rx="14"/><text x="790" y="52">Ada's table</text><text x="790" y="74" class="s">her hand, your card backs</text></g>
+        <g class="box"><rect x="640" y="115" width="300" height="70" rx="14"/><text x="790" y="147">Bo's table</text><text x="790" y="169" class="s">his hand, her card backs</text></g>
+        <g class="box"><rect x="640" y="210" width="300" height="70" rx="14"/><text x="790" y="242">Spectator</text><text x="790" y="264" class="s">only public information</text></g>
+        <path d="M230 150H296" class="ln" marker-end="url(#ar)"/>
+        <path d="M550 120C590 110 600 60 636 56" class="ln" marker-end="url(#ar)"/>
+        <path d="M550 150H636" class="ln" marker-end="url(#ar)"/>
+        <path d="M550 180C590 190 600 240 636 244" class="ln" marker-end="url(#ar)"/>
+        <text x="593" y="140" class="tag">view + fx</text>
+        <path d="M640 98C600 104 585 210 552 212" class="ln dash" marker-end="url(#ar)"/>
+        <text x="575" y="226" class="tag">intents</text>
+      </svg>
+    </section>
+
+    <!-- ============ final -->
+    <section class="final">
+      <h2>Prototype tonight. Playtest tomorrow.</h2>
+      <p>Tablecraft started inside an AI board-game studio, where hundreds of generated prototypes needed a table that was fair, readable and fun to watch. Now it is yours.</p>
+      <div class="cta center">
+        <a class="btn primary" href="./playground.html">Try it in the playground</a>
+        <a class="btn" href="./docs/getting-started.html">Read the guide</a>
+        <a class="btn" href="https://github.com/table-craft/table-craft">Star on GitHub</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span><img src="./logo.svg" alt="" width="20" height="20" /> Tablecraft · MIT licensed</span>
+    <span><a href="./docs/index.html">Docs</a> · <a href="./playground.html">Playground</a> · <a href="./examples.html">Examples</a> · <a href="https://github.com/table-craft/table-craft/blob/main/CHANGELOG.md">Changelog</a></span>
+  </footer>
+  <script type="module" src="./src/landing.js"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "tablecraft": { "command": "npx", "args": ["-y", "tablecraft", "mcp"] }
+  }
+}

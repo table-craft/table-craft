@@ -1,0 +1,23 @@
+{
+  // Type tests: `npm run typecheck` (pretypecheck links types/test/node_modules/tablecraft to this package, so the
+  // tests resolve `tablecraft/*` and `/// <reference types="tablecraft/game" />` through package.json "exports" exactly
+  // like an installed copy). Covers every entry point from a TS host app (test/host.tsx) and plain-JS game files with
+  // `// @ts-check` (test/game*.js). Lines marked `@ts-expect-error` are mistakes the declarations must reject.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": false,
+    "skipLibCheck": false,
+    "types": ["node"]
+  },
+  "include": [
+    "index.d.ts", "react.d.ts", "engine.d.ts", "embed.d.ts", "server.d.ts", "mcp.d.ts",
+    "test/**/*.ts", "test/**/*.cts", "test/**/*.tsx", "test/**/*.js"
+  ]
+}

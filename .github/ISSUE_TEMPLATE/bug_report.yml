@@ -1,0 +1,43 @@
+name: Bug report
+description: Something in the engine, table, room server or tools does not work as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time! A small game module that reproduces the problem is the fastest route to a fix.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations: { required: true }
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: A minimal game module, a playground share link, or the steps to reproduce.
+      render: js
+    validations: { required: true }
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [Game runtime / rules kit, 3D table, HUD / React, Room server, Referee / balance lab, MCP / CLI, Docs, Other]
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes:
+      label: Tablecraft version
+      placeholder: 0.1.0
+    validations: { required: true }
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: Node version, browser and OS.
+      placeholder: Node 22.12, Chrome 140, macOS 15
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Console output, referee summary, a screenshot or a short clip.
