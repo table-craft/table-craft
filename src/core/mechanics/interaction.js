@@ -22,17 +22,19 @@ export function installInteraction(T) {
   T.secret = X;
 
   // ------------------------------------------------------------ T.auction
-  // a = { kind, order, i, min, step, high, leader, passed, acted, price?, floor?, closed? }
+  // a = { kind, order, i, min, step, high, leader, passed, acted, price?, floor?, closed?, declined? }
   //   'open': bid or pass in turn until everyone but the leader has passed (passing is final).
   //   'once': once around — everyone bids or passes exactly once, the highest bid wins.
   //   'dutch': the price drops (T.auction.lower) until someone takes it (T.auction.take).
   const A = {};
-  A.create = (ids, { kind = 'open', min = 1, step = 1, start = 0, price = 0, floor = 0 } = {}) => {
+  A.create = (ids, { kind = 'open', min = 1, step = 1, start = 0, price = 0, floor = 0, exclude = [] } = {}) => {
     const order = [...(ids || [])];
     const i = typeof start === 'number' ? start : Math.max(0, order.indexOf(start));
-    return kind === 'dutch'
-      ? { kind, order, price, step, floor, leader: null, high: 0, closed: false }
-      : { kind, order, i, min, step, high: 0, leader: null, passed: [], acted: [] };
+    if (kind === 'dutch') {
+      const eligible = order.filter((id) => !exclude.includes(id));
+      return { kind, order: eligible, declined: [], price, step, floor, leader: null, high: 0, closed: eligible.length === 0 };
+    }
+    return { kind, order, i, min, step, high: 0, leader: null, passed: [], acted: [] };
   };
   A.done = (a) => {
     if (a.kind === 'dutch') return a.leader != null || a.closed;
@@ -60,8 +62,25 @@ export function installInteraction(T) {
   // the amounts this player may bid now, up to `budget` (slice it if the list is long)
   A.legalBids = (a, id, budget) => { const out = []; if (A.turn(a) !== id) return out; for (let x = A.minBid(a); x <= budget; x += a.step) out.push(x); return out; };
   // dutch: lower the price one step → the new price, or null once it would drop below the floor (no sale)
-  A.lower = (a) => { if (A.done(a)) return null; if (a.price - a.step < a.floor) { a.closed = true; return null; } a.price -= a.step; return a.price; };
-  A.take = (a, id) => { if (a.kind !== 'dutch' || A.done(a)) return false; a.leader = id; a.high = a.price; return true; };
+  A.lower = (a) => {
+    if (A.done(a)) return null;
+    a.declined = [];
+    if (a.price - a.step < a.floor) { a.closed = true; return null; }
+    a.price -= a.step;
+    return a.price;
+  };
+  A.decline = (a, id) => {
+    if (a.kind !== 'dutch' || A.done(a) || !a.order.includes(id)) return false;
+    if (!a.declined) a.declined = [];
+    if (a.declined.includes(id)) return false;
+    a.declined.push(id);
+    if (a.declined.length === a.order.length) A.lower(a);
+    return true;
+  };
+  A.take = (a, id) => {
+    if (a.kind !== 'dutch' || A.done(a) || !a.order.includes(id) || a.declined.includes(id)) return false;
+    a.leader = id; a.high = a.price; return true;
+  };
   // → { id, price } once the auction is over and someone won it, else null
   A.winner = (a) => (A.done(a) && a.leader != null ? { id: a.leader, price: a.high } : null);
   // Sealed bids { playerId: amount } → { id, bid, price, tied } or null. Ties at the top go to the first id in

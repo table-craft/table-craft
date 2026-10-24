@@ -290,11 +290,12 @@ One plain object for every turn-based auction: `T.auction.create(ids, opts)`.
 
 | | |
 |---|---|
-| `T.auction.create(ids, { kind, min = 1, step = 1, start = 0, price, floor }?)` | `start`: seat index or id of the first bidder |
+| `T.auction.create(ids, { kind, min = 1, step = 1, start = 0, price, floor, exclude }?)` | `start`: seat index or id of the first bidder; Dutch `exclude` removes ineligible ids (no eligible bidders closes without a sale) |
 | `T.auction.turn(a)` · `T.auction.minBid(a)` | who bids next (`null` when over) / the lowest legal bid |
 | `T.auction.bid(a, id, amount)` · `T.auction.pass(a, id)` | → `true`, or `false` when it is not their turn or the bid is too low |
 | `T.auction.legalBids(a, id, budget)` | the amounts `id` may bid now, up to `budget` — for `actions()` |
-| `T.auction.lower(a)` · `T.auction.take(a, id)` | Dutch auctions |
+| `T.auction.decline(a, id)` | record a Dutch decline; the last eligible decline lowers the price once; `false` for an ineligible or repeated response |
+| `T.auction.lower(a)` · `T.auction.take(a, id)` | lower a Dutch price (clears declines) / take it if eligible and not declined at this price |
 | `T.auction.done(a)` · `T.auction.winner(a)` | over? / `{ id, price }` or `null` (nobody bid) |
 | `T.auction.sealed(bids, { order, random, price }?)` | `{ playerId: amount }` → `{ id, bid, price, tied }` or `null`. Top ties go to the first in `order`, else a `random` pick, else the first bid. `price: 'second'` = second-highest bid (Vickrey) |
 

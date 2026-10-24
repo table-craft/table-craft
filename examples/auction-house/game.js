@@ -183,10 +183,10 @@ module.exports = {
         return s;
       }
       s.phase = 'auction';
-      s.lot = { card, kind: l.kind, auctioneer: p.id, declined: [] };
+      s.lot = { card, kind: l.kind, auctioneer: p.id };
       const order = bidOrder(s, p.id);
       if (l.kind === 'sealed') s.lot.bids = T.secret.create(order);
-      else if (l.kind === 'dutch') s.lot.auction = T.auction.create(order, { kind: 'dutch', price: DUTCH.start, step: DUTCH.step, floor: DUTCH.floor });
+      else if (l.kind === 'dutch') s.lot.auction = T.auction.create(order, { kind: 'dutch', price: DUTCH.start, step: DUTCH.step, floor: DUTCH.floor, exclude: [p.id] });
       else s.lot.auction = T.auction.create(order, { kind: l.kind, min: 1, step: 1 });
       log(s, `${p.name} offered ${title(s, card)} by ${ART[l.artist].name} (${KINDS[l.kind].name} auction).`);
       ctx.fx({ type: 'toast', text: `${KINDS[l.kind].icon} ${KINDS[l.kind].name} auction: ${title(s, card)}`, tone: 'info', sound: false });
@@ -235,23 +235,20 @@ module.exports = {
     take(s, ctx) {
       if (s.phase !== 'auction' || s.lot.kind !== 'dutch') return { error: 'There is no Dutch auction now' };
       const p = P(s, ctx.playerId); const a = s.lot.auction;
-      if (!p || p.id === s.lot.auctioneer) return { error: 'The auctioneer cannot take their own painting' };
-      if (s.lot.declined.includes(p.id)) return { error: 'You declined at this price — wait for the next one' };
+      if (!p) return { error: 'You are not at this table' };
+      if (!a.order.includes(p.id)) return { error: 'The auctioneer cannot take their own painting' };
       if (p.money < a.price) return { error: 'You do not have that much money' };
-      if (!T.auction.take(a, p.id)) return { error: 'Too late' };
+      if (!T.auction.take(a, p.id)) return { error: 'You cannot take now' };
       afterBid(s, ctx);
       return s;
     },
     decline(s, ctx) {
       if (s.phase !== 'auction' || s.lot.kind !== 'dutch') return { error: 'There is no Dutch auction now' };
       const p = P(s, ctx.playerId); const lot = s.lot;
-      if (!p || p.id === lot.auctioneer || lot.declined.includes(p.id)) return { error: 'You cannot decline now' };
-      lot.declined.push(p.id);
-      if (lot.declined.length < s.order.length - 1) return s;
-      lot.declined = [];
-      const price = T.auction.lower(lot.auction);
-      if (price == null) { afterBid(s, ctx); return s; }
-      log(s, `Nobody takes ${title(s, lot.card)}: the price drops to ${price}.`);
+      const auction = lot.auction; const price = auction.price;
+      if (!p || !T.auction.decline(auction, p.id)) return { error: 'You cannot decline now' };
+      if (T.auction.done(auction)) { afterBid(s, ctx); return s; }
+      if (auction.price !== price) log(s, `Nobody takes ${title(s, lot.card)}: the price drops to ${auction.price}.`);
       return s;
     },
   },
@@ -372,7 +369,7 @@ module.exports = {
       return bids.map((amount) => ({ name: 'seal', args: { amount }, ...(done ? { free: true } : {}) }));
     }
     if (lot.kind === 'dutch') {
-      if (playerId === lot.auctioneer || lot.declined.includes(playerId)) return [];
+      if (!lot.auction.order.includes(playerId) || lot.auction.declined.includes(playerId)) return [];
       return [{ name: 'decline' }, ...(p.money >= lot.auction.price ? [{ name: 'take' }] : [])];
     }
     if (T.auction.turn(lot.auction) !== playerId) return [];
@@ -436,7 +433,7 @@ function activeIds(s) {
   if (s.phase === 'offer') return [T.turns.current(s.turn)];
   const lot = s.lot;
   if (lot.kind === 'sealed') return T.secret.pending(lot.bids);
-  if (lot.kind === 'dutch') return s.order.filter((id) => id !== lot.auctioneer && !lot.declined.includes(id));
+  if (lot.kind === 'dutch') return lot.auction.order.filter((id) => !lot.auction.declined.includes(id));
   return [T.auction.turn(lot.auction)].filter(Boolean);
 }
 

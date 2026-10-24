@@ -6,6 +6,7 @@ and the project uses [Semantic Versioning](https://semver.org/). Until 1.0, mino
 ## [Unreleased]
 
 ### Added
+- **Dutch auctions:** `T.auction.create` can exclude ineligible bidders, and `T.auction.decline` lowers the price after all eligible bidders decline.
 - **Area scoring:** `T.area.majority` supports `{ fewest: true }`, including zero-count players by default.
 - **Rules kit:** `T.market.refill` accepts `{ reshuffle: false }` to leave the discard pile out of the deck when refilling.
 - **Rules kit:** `T.sets.ofAKind(counts, n, kind?)` can count groups for one kind or a list of kinds.
