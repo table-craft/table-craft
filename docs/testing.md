@@ -8,6 +8,8 @@ The command-line referee accepts `--time <seconds>` to change its time limit (60
 npx tablecraft simulate games/my-game.js --games 500 --time 90
 ```
 
+`simulate` and `audit` accept `--json` to print the complete report as JSON, for example `npx tablecraft simulate games/my-game.js --json`.
+
 ```js
 actions(state, { playerId }) { return [{ name: 'roll' }, { name: 'play', args: { card: 'c7' } }]; },
 bot(state, { playerId, actions, random }) { return actions.find((a) => a.name === 'play') || actions[0]; },

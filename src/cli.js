@@ -2,15 +2,16 @@
 // tablecraft CLI
 //   tablecraft mcp                         MCP server on stdio (for Claude Code, Claude Desktop, any MCP client)
 //   tablecraft validate <game.js>          setup + views + scene checks (+ a short referee pass)
-//   tablecraft simulate <game.js> [--games 200] [--players 3] [--bot mixed|module|random] [--seed 1] [--time <seconds>]
-//   tablecraft audit <game.js> [--games 3]  hidden-information and readability audit
-//   tablecraft balance <game.js> [--games 200] [--players 2] [--bots module,greedy] [--sweep content.cards.0.n=1,2,3] [--time <seconds>]
+//   tablecraft simulate <game.js> [--games 200] [--players 3] [--bot mixed|module|random] [--seed 1] [--time <seconds>] [--json]
+//   tablecraft audit <game.js> [--games 3] [--json]  hidden-information and readability audit
+//   tablecraft balance <game.js> [--games 200] [--players 2] [--bots module,greedy] [--sweep content.cards.0.n=1,2,3] [--time <seconds>] [--json]
 //   common: [--content data.json] [--locale tr]
 import { readSource, readContent, auditViews, validateModule, GameModule } from './mcp/tools.js';
 import { simulate, summarize, configure, analyzeBalance, sweepParameter, compareReports } from './server/index.js';
 
 const [cmd, file, ...rest] = process.argv.slice(2);
 const opt = (name, def) => { const i = rest.indexOf(`--${name}`); return i >= 0 ? rest[i + 1] : def; };
+const json = rest.includes('--json');
 const num = (name, def) => (opt(name) != null ? Number(opt(name)) : def);
 function timeLimitMs() {
   const i = rest.indexOf('--time');
@@ -27,7 +28,7 @@ if (opt('locale')) configure({ locale: opt('locale') });
 async function main() {
   if (cmd === 'mcp') { (await import('./mcp/index.js')).startStdio(); return; }
   if (!['validate', 'simulate', 'audit', 'balance'].includes(cmd) || !file) {
-    console.log('Usage: tablecraft mcp | validate <game.js> | simulate <game.js> [--games N] [--players N] [--bot mode] [--time <seconds>] | audit <game.js>\n       | balance <game.js> [--games N] [--players N] [--bots module,greedy] [--sweep path=v1,v2] [--time <seconds>]\n       [--content data.json] [--locale tr]');
+    console.log('Usage: tablecraft mcp | validate <game.js> | simulate <game.js> [--games N] [--players N] [--bot mode] [--time <seconds>] [--json] | audit <game.js> [--json]\n       | balance <game.js> [--games N] [--players N] [--bots module,greedy] [--sweep path=v1,v2] [--time <seconds>] [--json]\n       [--content data.json] [--locale tr]');
     process.exit(cmd ? 1 : 0);
   }
   const limitMs = ['simulate', 'balance'].includes(cmd) ? timeLimitMs() : undefined;
@@ -38,7 +39,7 @@ async function main() {
     console.log(`✓ valid — ${info.meta.name || 'game'}${info.referee ? ` · referee ${info.referee.finished}/${info.referee.games}` : ''}`);
   } else if (cmd === 'simulate') {
     const rep = simulate(source, { games: num('games', 100), players: num('players'), botMode: opt('bot', 'mixed'), seed: num('seed', 1), content, timeLimitMs: limitMs });
-    console.log(summarize(rep));
+    console.log(json ? JSON.stringify(rep, null, 2) : summarize(rep));
     process.exit(rep.ok ? 0 : 1);
   } else if (cmd === 'balance') {
     const opts = { games: num('games', 200), players: num('players'), botMix: (opt('bots') || 'module').split(','), seed: num('seed', 1), content, timeLimitMs: limitMs };
@@ -47,15 +48,22 @@ async function main() {
       const [path, list] = sweep.split('=');
       const values = list.split(',').map((v) => { try { return JSON.parse(v); } catch { return v; } });
       const runs = sweepParameter(source, { ...opts, path, values });
+      if (json) { console.log(JSON.stringify(runs, null, 2)); return; }
       console.log(`Sweep ${path}\n`);
       console.log(table(['value', 'first-player adv.', 'avg moves', 'p90 moves', 'forced', 'ties', 'comebacks', 'warnings'],
         runs.map(({ value, report: r }) => [JSON.stringify(value), pct(r.firstPlayerAdvantage), r.length.avgMoves, r.length.p90Moves, pct(r.decisions.forcedRate), pct(r.tieRate), pct(r.comebackRate), r.warnings.filter((w) => w.severity === 'warn').length])));
       if (runs.length > 1) for (const d of compareReports(runs[0].report, runs[runs.length - 1].report).filter((x) => x.delta)) console.log(`  ${d.metric}: ${d.before} → ${d.after} (${d.delta > 0 ? '+' : ''}${d.delta})`);
       return;
     }
-    printBalance(analyzeBalance(source, opts));
+    const report = analyzeBalance(source, opts);
+    if (json) console.log(JSON.stringify(report, null, 2));
+    else printBalance(report);
   } else {
     const r = auditViews(source, { games: num('games', 3), players: num('players'), content });
+    if (json) {
+      console.log(JSON.stringify(r, null, 2));
+      process.exit(r.findings.some((f) => f.severity === 'error') ? 1 : 0);
+    }
     for (const f of r.findings) console.log(`[${f.severity}] ${f.message}${f.count > 1 ? ` (×${f.count})` : ''}`);
     console.log(`${r.views} views · ${r.findings.length} finding(s)`);
     process.exit(r.findings.some((f) => f.severity === 'error') ? 1 : 0);

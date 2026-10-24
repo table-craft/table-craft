@@ -44,4 +44,16 @@ test('CLI usage lists --time for simulate and balance', () => {
   const usage = run();
   assert.match(usage, /simulate <game\.js>[^\n]*\[--time <seconds>\]/);
   assert.match(usage, /balance <game\.js>[^\n]*\[--time <seconds>\]/);
+  assert.match(usage, /\[--json\]/);
+});
+
+test('CLI --json prints parseable reports for simulate, audit, balance, and sweeps', () => {
+  for (const args of [
+    ['simulate', game, '--games', '2', '--json'],
+    ['audit', game, '--games', '1', '--json'],
+    ['balance', game, '--games', '2', '--json'],
+    ['balance', game, '--games', '2', '--sweep', 'options.target=1,2', '--json'],
+  ]) {
+    assert.doesNotThrow(() => JSON.parse(run(...args)));
+  }
 });
